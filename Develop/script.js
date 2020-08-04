@@ -1,76 +1,91 @@
-function hoursToMin(hours) {
-    if (isNaN(hours)) {
-        console.log("ERR hoursToMin did recieved a non-number as input.");
-        return false;
-    }
-    return hours * 60;
-}
+var eventData = [{
+    title: "First Event",
+    color: "gold",
+    startDay: "3 8 2020",
+    startHour: 3,
+    startMinute: 0,
+    endDay: "3 8 2020",
+    endHour: 5,
+    endMinute: 30,
+    details: ""
+}]
 
-function minTo24Time(intMin) {
-    if (isNaN(intMin)) {
-        console.log("ERR minTo24Time did recieved a non-number as input.");
-        return false;
-    }
-    var hour = intMin / 60;
-    var min = intMin % 60;
-    return ((hour > 9) ? "" : "0") + hour + ":" + ((min > 9) ? "" : "0") + min;
-}
-
-function getTime(DateObj) {
-    var hour = DateObj.getHours();
-    var min = DateObj.getMinutes();
-    return ((hour > 9) ? "" : "0") + hour + ":" + ((min > 9) ? "" : "0") + min;
-}
-var startHour = 7,
-    endHour = 22;
-var WEEKDAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-var MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-var today = new Date();
-var currentTime = getTime(today);
-var scheduleArray;
-var millitaryTime = true;
-
-function updatePage() {
-    $(".container").empty();
-    for (hour = startHour; hour < endHour; hour++) {
-        const timeString = (millitaryTime) ? minTo24Time(hoursToMin(hour)) : minTo12Time(hoursToMin(hour));
-        var addClass;
-        if (hour < today.getHours())
-            addClass = "past";
-        else if (hour > today.getHours())
-            addClass = "future";
-        else
-            addClass = "present";
-
-        var div = $("<div class='row time-block " + addClass + "'>");
-        div.append($("<p class='col-md-2 col-sm-2 hour' style='margin:0'>").text(timeString));
-        div.append($("<textarea class='col-md-8 col-sm-8' id='" + hour + "'>"));
-        div.append($("<button class='col-md-2 col-sm-2 saveBtn' value='" + hour + "'>").append($("<i class='fas fa-save fa-3x'></i>")));
-        $(".container").append(div); //append div
-    }
-}
-var timeupdater = setInterval(function() {
-    today = new Date();
-    currentTime = today.getHours() + ":" + today.getMinutes();
-    $("#currentDay").text(moment().format('dddd, MMMM Do, YYYY'));
-    $("#currentTime").text(moment().format("HH:mm:ss"));
-}, 100); //time updates every 10th of a second
 
 $(document).ready(function() {
-    var startHour = 6; //for now, will be adjustable
-    var endHour = 22; //for now, will be adjustable
-    var millitaryTime = false;
-    scheduleArray = JSON.parse(localStorage.getItem("scheduleArray"));
-    if (scheduleArray === null || typeof(scheduleArray) !== "object") {
-        scheduleArray = new Array(24);
-        for (var i = 0; i < scheduleArray.length; i++)
-            scheduleArray[i] = "";
+    var height = 45;
+    // var moment = moment();
+    const daysInAWeek = 7;
+    const STARTTIME = 0;
+    const ENDTIME = 24;
+    var smallestInterval = 10;
+    var smallestIntervalPerHour = 60 / smallestInterval;
+    const duration = ENDTIME - STARTTIME;
+    const OFFSET = (moment().utcOffset() / 60);
+    const TIMEZONE = "GMT" + ((OFFSET > 0) ? "+" : "") + ((OFFSET < 0) ? "-" : "") + ((Math.abs(OFFSET) < 9) ? "0" : "") + Math.abs(OFFSET);
+    const HEADER_ADJUSTMENT = 5.0391;
+    var schedule = $(".schedule");
+    var weekDates = $(".header");
+
+    weekDates.append($("<div class='timezone' style='grid-area:timezone'>").text(TIMEZONE));
+    var weekdays = $("<div class='week' id='weekLabels'>");
+    for (var i = 0; i < daysInAWeek; i++) {
+        var dayLabel = $("<div class='dayLabel'>");
+        dayLabel.append($("<h>").text(moment().add(i, 'day').format('dddd')));
+        dayLabel.append($("<h class='dateNumber'>").text(moment().add(i, 'day').format('D')));
+        weekdays.append(dayLabel);
     }
-    updatePage();
-    $(".saveBtn").on("click", function() {
-        const index = $(this).val();
-        scheduleArray[index] = $("#" + index + "").val();
-        localStorage.setItem("scheduleArray", JSON.parse(scheduleArray));
-        updatePage();
+
+    weekDates.append(weekdays)
+    var col = $("<div class='head col' style='grid-template-rows: repeat(" + (duration) + ", " + height + "px)'>");
+    for (var i = STARTTIME; i < duration; i++) {
+        col.append($("<div class='times'>").text((i) + ":00"));
+    }
+    schedule.append(col);
+
+    var body = $("<div class='body'>");
+    var line = $("<div class='col' style='z-index:-2;grid-template-rows: repeat(" + (duration) + ", " + height + "px)'>");
+    for (var i = STARTTIME; i < duration; i++) {
+        line.append($("<div class='spacer'>"));
+    }
+    body.append(line);
+    body.append($("<div class='week' id='overlay'>"));
+    body.append(body);
+    schedule.append(body);
+    var rowHeight = height;
+
+    function dailyEventToDiv(event) {
+        var div = $("<div class='event'>");
+        div.text(event.title);
+        div[0].style.background = event.color;
+        div[0].style.gridArea = toString(event.startHour * 6 + event.startMinute / 10 + 1) + "/1/" + toString(event.endHour * smallestIntervalPerHour + event.endMinute / (60 / smallestIntervalPerHour) + 1);
+        console.log(div[0].style.gridArea);
+        return div;
+    }
+
+    function displayOverlayGrid() {
+        var overlay = $("#overlay");
+        overlay.empty();
+        for (var i = 0; i < daysInAWeek; i++) {
+            var day = $("<div class='col day' style='padding-right:7px;grid-template-rows: repeat(" + smallestIntervalPerHour * (duration) + "," + (rowHeight) / (smallestIntervalPerHour) + "px)'>");
+            var dailyListOfEvents = eventData.filter(function(event) {
+                return event.startDay === moment().add(i, 'day').format("D M Y") || event.endDay === moment().add(i, 'day').format("D M Y");
+            });
+            for (event of dailyListOfEvents)
+                day.append(dailyEventToDiv(event));
+            overlay.append(day);
+        }
+        $("#weekLabels")[0].style.width = $("#overlay")[0].getBoundingClientRect().width + "px";
+        $(".timezone")[0].style.width = ($(".head")[0].getBoundingClientRect().width - HEADER_ADJUSTMENT) + "px";
+    }
+    displayOverlayGrid();
+    var windowWidth = $(window).width();
+    var windowHeight = $(window).height();
+    $(window).on("resize", function() {
+        if ($(this).width() !== windowWidth || $(this).height() !== windowHeight) {
+            windowWidth = $(this).width();
+            windowHeight = $(this).height();
+            //do things
+            displayOverlayGrid();
+        }
     });
 });

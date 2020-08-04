@@ -1,71 +1,150 @@
-body {
-  font-family: 'Open Sans', sans-serif;
-  font-size: 16px;
-  line-height: 1;
+/* surrounds everything */
+
+.viewport {
+    width: 95%;
+    height: 700px;
+    display: inline-block;
+    position: relative;
 }
 
-textarea{
-  background: transparent;
-  border: none;
-  resize: none;
-  color: #000000;
-  border-left: 1px solid black;
-  padding: 10px;
+.header {
+    position: relative;
+    height: 15%;
+    display: grid;
+    grid-template-columns: [timezone]auto [dates]auto;
+    border-bottom: #dadce0 1px solid;
+    padding: 0;
 }
 
-.jumbotron {
-  text-align: center;
-  background-color: transparent;
-  color: black;
-  border-radius: 0;
-  border-bottom: 10px solid black;
+.timezone {
+    font-size: 10px;
 }
 
-.description{
-  white-space: pre-wrap;
+#weekLabels {
+    grid-area: dates;
 }
 
-.time-block{
-  text-align: center;
-  border-radius: 15px;
+.dayLabel {
+    text-align: center;
+    border-left: #dadce0 1px solid;
 }
 
-.row {
-  white-space: pre-wrap;
-  height: 80px;
-  border-top: 1px solid white;;
+.dateNumber {
+    display: block;
+    margin: 0 auto;
 }
 
-.hour {
-  background-color: #ffffff;
-  color: #000000;
-  border-top: 1px dashed #000000;
+.schedule {
+    position: relative;
+    height: 85%;
+    overflow: auto;
+    display: grid;
+    grid-template-columns: [head]1fr [body]14fr;
 }
 
-.past {
-  background-color: #d3d3d3;
-  color: white;
+#overlay {
+    grid-area: body;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: 2
 }
 
-.present {
-  background-color: #ff6961;
-  color: white;
+.head {
+    grid-area: head;
 }
 
-.future {
-  background-color: #77dd77;
-  color: white;
+.body {
+    grid-area: body;
 }
 
-.saveBtn {
-  border-left: 1px solid black;
-  border-top-right-radius: 15px;
-  border-bottom-right-radius: 15px;
-  background-color: #06AED5;
-  color: white;
+.times {
+    text-align: right;
+    top: -11.5px;
+    position: relative;
+    margin-right: 10px;
+    color: #70757a;
+    font-size: 14px;
 }
 
-.saveBtn i:hover {
-  font-size: 20px;
-  transition: all .3s ease-in-out;
+.week {
+    display: grid;
+    grid-template-rows: auto;
+    grid-template-columns: repeat(7, 1fr);
+    width: 100%;
+}
+
+.col {
+    display: grid;
+    grid-template-rows: repeat(24, 1fr);
+    grid-template-columns: 1fr;
+    padding: 0;
+}
+
+.day {
+    border-left: #dadce0 1px solid;
+}
+
+.header>div {
+    height: auto;
+}
+
+.spacer {
+    margin-right: 5px;
+}
+
+.spacer::after {
+    content: '';
+    border-bottom: #dadce0 1px solid;
+    position: absolute;
+    left: -5px;
+    width: 100%;
+    margin-top: -1px;
+    pointer-events: none;
+}
+
+.event {
+    font-size: 2vw;
+    padding: .5em;
+    text-align: center;
+    height: 100%;
+    border-radius: 3px;
+    grid-area: 19/1/34/1;
+}
+
+
+/* width */
+
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+
+/* Track */
+
+ ::-webkit-scrollbar-track:hover {
+    border-radius: 10px;
+}
+
+
+/* Handle */
+
+ ::-webkit-scrollbar-thumb {
+    background: #dadce0;
+    border-radius: 10px;
+}
+
+
+/* Handle on hover */
+
+:hover::-webkit-scrollbar-thumb {
+    background: #bdc1c6
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #bdc1c6;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: #616161;
 }
