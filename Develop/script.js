@@ -1,28 +1,45 @@
+'use strict';
 var eventData = [{
-    title: "First Event",
-    color: "gold",
-    startDay: "3 8 2020",
-    startHour: 3,
-    startMinute: 0,
-    endDay: "3 8 2020",
-    endHour: 5,
-    endMinute: 30,
-    details: ""
-}]
-
-
+        title: "First Event",
+        color: "gold",
+        startDay: "05-08-2020",
+        startHour: 3,
+        startMinute: 0,
+        endDay: "05-08-2020",
+        endHour: 5,
+        endMinute: 30,
+        details: ""
+    },
+    {
+        title: "Second Event",
+        color: "orange",
+        startDay: "05-08-2020",
+        startHour: 2,
+        startMinute: 30,
+        endDay: "05-08-2020",
+        endHour: 3,
+        endMinute: 0,
+        details: ""
+    }
+]
 $(document).ready(function() {
-    var height = 45;
-    // var moment = moment();
+    var height, maxheight = 45,
+        minHeight = 25;
+    if ($(this).height() > 500)
+        height = maxheight;
+    else
+        height = minHeight;
     const daysInAWeek = 7;
     const STARTTIME = 0;
     const ENDTIME = 24;
-    var smallestInterval = 10;
+    var smallestInterval = 15;
     var smallestIntervalPerHour = 60 / smallestInterval;
     const duration = ENDTIME - STARTTIME;
     const OFFSET = (moment().utcOffset() / 60);
     const TIMEZONE = "GMT" + ((OFFSET > 0) ? "+" : "") + ((OFFSET < 0) ? "-" : "") + ((Math.abs(OFFSET) < 9) ? "0" : "") + Math.abs(OFFSET);
     const HEADER_ADJUSTMENT = 5.0391;
+    const FORMATTING = 'DD-MM-YYYY hh:mm';
+    const AMPM = " A";
     var schedule = $(".schedule");
     var weekDates = $(".header");
 
@@ -32,9 +49,10 @@ $(document).ready(function() {
         var dayLabel = $("<div class='dayLabel'>");
         dayLabel.append($("<h>").text(moment().add(i, 'day').format('dddd')));
         dayLabel.append($("<h class='dateNumber'>").text(moment().add(i, 'day').format('D')));
+        dayLabel.append($("<div class='task'>"))
         weekdays.append(dayLabel);
     }
-
+    //task max height: 5.5x tasks
     weekDates.append(weekdays)
     var col = $("<div class='head col' style='grid-template-rows: repeat(" + (duration) + ", " + height + "px)'>");
     for (var i = STARTTIME; i < duration; i++) {
@@ -54,11 +72,12 @@ $(document).ready(function() {
     var rowHeight = height;
 
     function dailyEventToDiv(event) {
-        var div = $("<div class='event'>");
+        var status = (false) ? "future" : "past";
+        var div = $("<div class='" + status + "'>");
         div.text(event.title);
-        div[0].style.background = event.color;
-        div[0].style.gridArea = toString(event.startHour * 6 + event.startMinute / 10 + 1) + "/1/" + toString(event.endHour * smallestIntervalPerHour + event.endMinute / (60 / smallestIntervalPerHour) + 1);
-        console.log(div[0].style.gridArea);
+        const start = event.startHour * smallestIntervalPerHour + event.startMinute / (60 / smallestIntervalPerHour) + 1;
+        const end = event.endHour * smallestIntervalPerHour + event.endMinute / (60 / smallestIntervalPerHour) + 1
+        div.attr("style", "background-color:" + event.color + ";grid-area:" + start.toString() + "/1/" + end.toString() + "/1");
         return div;
     }
 
@@ -68,10 +87,11 @@ $(document).ready(function() {
         for (var i = 0; i < daysInAWeek; i++) {
             var day = $("<div class='col day' style='padding-right:7px;grid-template-rows: repeat(" + smallestIntervalPerHour * (duration) + "," + (rowHeight) / (smallestIntervalPerHour) + "px)'>");
             var dailyListOfEvents = eventData.filter(function(event) {
-                return event.startDay === moment().add(i, 'day').format("D M Y") || event.endDay === moment().add(i, 'day').format("D M Y");
+                return event.startDay === moment().add(i, 'day').format("DD-MM-YYYY") || event.endDay === moment().add(i, 'day').format("DD-MM-YYYY");
             });
-            for (event of dailyListOfEvents)
+            for (event of dailyListOfEvents) {
                 day.append(dailyEventToDiv(event));
+            }
             overlay.append(day);
         }
         $("#weekLabels")[0].style.width = $("#overlay")[0].getBoundingClientRect().width + "px";
@@ -85,6 +105,11 @@ $(document).ready(function() {
             windowWidth = $(this).width();
             windowHeight = $(this).height();
             //do things
+            if (windowHeight > 500)
+                height = maxheight;
+            else
+                height = minHeight;
+            console.log(height);
             displayOverlayGrid();
         }
     });
