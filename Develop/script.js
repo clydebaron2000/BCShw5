@@ -22,18 +22,37 @@ var eventData = [{
         details: ""
     }
 ]
+var height, maxheight = 45,
+    minHeight = 25;
+if ($(this).height() > 500)
+    height = maxheight;
+else
+    height = minHeight;
+var startDayInWeek = 0;
+var endDayInWeek = 7;
+const STARTTIME = 0;
+const ENDTIME = 24;
+var smallestInterval = 15;
+var smallestIntervalPerHour = 60 / smallestInterval;
+
+function dayPlanner(startDate = startDayInWeek) {
+    startDayInWeek = startDate;
+    endDayInWeek = startDate + 1;
+}
+
+
+function threeDayPlanner(startDate = startDayInWeek) {
+    startDayInWeek = startDate;
+    endDayInWeek = startDate + 3;
+}
+
+function weekPlanner(startDate = startDayInWeek) {
+    startDayInWeek = startDate;
+    endDayInWeek = startDate + 7;
+}
+
 $(document).ready(function() {
-    var height, maxheight = 45,
-        minHeight = 25;
-    if ($(this).height() > 500)
-        height = maxheight;
-    else
-        height = minHeight;
-    const daysInAWeek = 7;
-    const STARTTIME = 0;
-    const ENDTIME = 24;
-    var smallestInterval = 15;
-    var smallestIntervalPerHour = 60 / smallestInterval;
+    console.log(startDayInWeek + " " + endDayInWeek)
     const duration = ENDTIME - STARTTIME;
     const OFFSET = (moment().utcOffset() / 60);
     const TIMEZONE = "GMT" + ((OFFSET > 0) ? "+" : "") + ((OFFSET < 0) ? "-" : "") + ((Math.abs(OFFSET) < 9) ? "0" : "") + Math.abs(OFFSET);
@@ -42,10 +61,9 @@ $(document).ready(function() {
     const AMPM = " A";
     var schedule = $(".schedule");
     var weekDates = $(".header");
-
     weekDates.append($("<div class='timezone' style='grid-area:timezone'>").text(TIMEZONE));
-    var weekdays = $("<div class='week' id='weekLabels'>");
-    for (var i = 0; i < daysInAWeek; i++) {
+    var weekdays = $("<div class='week' id='weekLabels' style='grid-template-columns: repeat(" + (endDayInWeek - startDayInWeek) + ", 1fr)'>");
+    for (var i = startDayInWeek; i < endDayInWeek; i++) {
         var dayLabel = $("<div class='dayLabel'>");
         dayLabel.append($("<h>").text(moment().add(i, 'day').format('dddd')));
         dayLabel.append($("<h class='dateNumber'>").text(moment().add(i, 'day').format('D')));
@@ -54,6 +72,7 @@ $(document).ready(function() {
     }
     //task max height: 5.5x tasks
     weekDates.append(weekdays)
+
     var col = $("<div class='head col' style='grid-template-rows: repeat(" + (duration) + ", " + height + "px)'>");
     for (var i = STARTTIME; i < duration; i++) {
         col.append($("<div class='times'>").text((i) + ":00"));
@@ -66,9 +85,12 @@ $(document).ready(function() {
         line.append($("<div class='spacer'>"));
     }
     body.append(line);
-    body.append($("<div class='week' id='overlay'>"));
+    body.append($("<div class='week' id='overlay' style='grid-template-columns: repeat(" + (endDayInWeek - startDayInWeek) + ", 1fr)'>"));
     body.append(body);
     schedule.append(body);
+    var interval = setInterval(function() {
+
+    }, 1000);
     var rowHeight = height;
 
     function dailyEventToDiv(event) {
@@ -82,10 +104,13 @@ $(document).ready(function() {
     }
 
     function displayOverlayGrid() {
+        // https://css-tricks.com/snippets/css/complete-guide-grid/#prop-grid-area
+        // https://jqueryui.com/draggable/#snap-to
+        // https://github.com/rotaready/moment-range#within
         var overlay = $("#overlay");
         overlay.empty();
-        for (var i = 0; i < daysInAWeek; i++) {
-            var day = $("<div class='col day' style='padding-right:7px;grid-template-rows: repeat(" + smallestIntervalPerHour * (duration) + "," + (rowHeight) / (smallestIntervalPerHour) + "px)'>");
+        for (var i = startDayInWeek; i < endDayInWeek; i++) {
+            var day = $("<div class='col day' id='" + moment().add(i, 'day').format("DD-MM-YYYY") + "' style='padding-right:7px;grid-template-rows: repeat(" + smallestIntervalPerHour * (duration) + "," + (rowHeight) / (smallestIntervalPerHour) + "px)'>");
             var dailyListOfEvents = eventData.filter(function(event) {
                 return event.startDay === moment().add(i, 'day').format("DD-MM-YYYY") || event.endDay === moment().add(i, 'day').format("DD-MM-YYYY");
             });
@@ -113,4 +138,23 @@ $(document).ready(function() {
             displayOverlayGrid();
         }
     });
+
+    function calculateDistance(elem, mouseX, mouseY) {
+        return [(mouseX - (elem.position().left)), (mouseY - (elem.position().top))];
+    }
+    $("*", document).click(function(e) {
+        var mX = e.pageX;
+        var mY = e.pageY;
+        // if (e.target.getAttribute("class") !== "col day") return;
+        // console.log($("#" + e.target.getAttribute('id')));
+        // var [dx, dy] = calculateDistance(, mX, mY);
+        var offset = $(this).offset();
+        e.stopPropagation();
+        $("#type").text(this.getAttribute('id'));
+        $("#x").text(mX);
+        $("#y").text(mY);
+        $("#dx").text(mX - offset.left);
+        $("#dy").text(mY - offset.top);
+    });
+
 });
