@@ -35,12 +35,9 @@ function updatePage() {
     for (hour = startHour; hour < endHour; hour++) {
         const timeString = (millitaryTime) ? minTo24Time(hoursToMin(hour)) : minTo12Time(hoursToMin(hour));
         var addClass;
-        if (hour < today.getHours())
-            addClass = "past";
-        else if (hour > today.getHours())
-            addClass = "future";
-        else
-            addClass = "present";
+        if (hour < today.getHours()) addClass = "past";
+        else if (hour > today.getHours()) addClass = "future";
+        else addClass = "present";
         var div = $("<div class='row time-block " + addClass + "'>");
         div.append($("<p class='col-md-2 col-sm-2 hour' style='margin:0'>").text(timeString));
         div.append($("<textarea class='col-md-8 col-sm-8' id='" + hour + "'>").text(scheduleArray[hour]));
@@ -54,7 +51,6 @@ var timeupdater = setInterval(function() {
     $("#currentDay").text(moment().format('dddd, MMMM Do, YYYY'));
     $("#currentTime").text(moment().format("HH:mm:ss"));
 }, 100); //time updates every 10th of a second
-
 $(document).ready(function() {
     var startHour = 6; //for now, will be adjustable
     var endHour = 22; //for now, will be adjustable
@@ -62,14 +58,13 @@ $(document).ready(function() {
     scheduleArray = JSON.parse(localStorage.getItem("scheduleArray"));
     if (scheduleArray === null || typeof(scheduleArray) !== "object") {
         scheduleArray = new Array(24);
-        for (var i = 0; i < scheduleArray.length; i++)
-            scheduleArray[i] = "";
+        for (var i = 0; i < scheduleArray.length; i++) scheduleArray[i] = "";
     }
     updatePage();
     $(".saveBtn").on("click", function() {
         const index = $(this).val();
         scheduleArray[index] = $("#" + index + "").val();
-        localStorage.setItem("scheduleArray", JSON.parse(scheduleArray));
+        localStorage.setItem("scheduleArray", JSON.stringify(scheduleArray));
         updatePage();
     });
 });
